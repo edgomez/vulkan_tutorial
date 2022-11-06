@@ -15,12 +15,14 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_vulkan.h>
 
-#include <utility>
+#include <utility> // needed for std::exchange in vulkan_raii !
 #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_raii.hpp>
 
+#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <exception>
 #include <string>
 
@@ -32,6 +34,10 @@ static const std::string s_app_name{"VulkanTurial01"};
 static const std::string s_window_title{"Vulkan Tutorial 01 - Getting an instance"};
 static const int s_window_width = 640;
 static const int s_window_height = 480;
+
+static const char s_VK_EXT_debug_utils[] = "VK_EXT_debug_utils";
+static const char s_VK_LAYER_KHRONOS_validation[] = "VK_LAYER_KHRONOS_validation";
+static const char s_vkCreateDebugUtilsMessengerExt[] = "vkCreateDebugUtilsMessengerEXT";
 
 class ApplicationError : public std::runtime_error
 {
@@ -76,6 +82,11 @@ class VulkanApplication
         }
 
         return EXIT_SUCCESS;
+    }
+
+    void setLoadValidationLayers(bool v)
+    {
+        m_load_validation_layers = v;
     }
 
   protected:
@@ -131,12 +142,35 @@ class VulkanApplication
             {
                 throw ApplicationError("failed getting the required vulkan extensions list from SDL");
             }
-
-            for (auto& ext : m_required_extensions)
-            {
-                std::printf("info: required instance extension %s\n", ext);
-            }
         }
+    }
+
+    bool isLayerPresent(const char* layer_name)
+    {
+        const auto layerNamePredicate = [&layer_name](const vk::LayerProperties& a) -> bool {
+            return !!strcmp(layer_name, a.layerName);
+        };
+        return std::end(m_layer_properties) !=
+               std::find_if(std::begin(m_layer_properties), std::end(m_layer_properties), layerNamePredicate);
+    }
+
+    bool isExtensionPresent(const char* extension_name)
+    {
+        const auto extensionNamePredicate = [&extension_name](const vk::ExtensionProperties& a) -> bool {
+            return !!strcmp(extension_name, a.extensionName);
+        };
+        return std::end(m_extension_properties) != std::find_if(std::begin(m_extension_properties),
+                                                                std::end(m_extension_properties),
+                                                                extensionNamePredicate);
+    }
+
+    static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT /* messageSeverity */,
+                                                        VkDebugUtilsMessageTypeFlagsEXT /* messageType */,
+                                                        const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+                                                        void* /* pUserData */)
+    {
+        std::printf("validation layer: %s\n", pCallbackData->pMessage);
+        return VK_FALSE;
     }
 
     void createVulkanInstance()
@@ -144,9 +178,61 @@ class VulkanApplication
         vk::ApplicationInfo app_info(m_app_name.c_str());
         app_info.apiVersion = VK_API_VERSION_1_0;
 
-        vk::InstanceCreateInfo instance_info({}, &app_info, {}, {m_required_extensions});
+        m_layer_properties = vk::enumerateInstanceLayerProperties();
+        m_extension_properties = vk::enumerateInstanceExtensionProperties();
+
+#if 0
+        for (auto& layer : m_layer_properties)
+        {
+            std::printf("info: available instance layer %s\n", layer.layerName.data());
+        }
+        for (const auto& extension : m_extension_properties)
+        {
+            std::printf("info: available instance extension %s\n", extension.extensionName.data());
+        }
+#endif // 0
+
+        std::vector<const char*> layers_to_enable;
+        bool hook_debug_print = false;
+
+        if (m_load_validation_layers)
+        {
+            if (isLayerPresent(s_VK_LAYER_KHRONOS_validation))
+            {
+                std::printf("info: found required instance layer %s\n", s_VK_LAYER_KHRONOS_validation);
+                layers_to_enable.push_back(s_VK_LAYER_KHRONOS_validation);
+            }
+            else
+            {
+                std::printf("warning: %s layer not found. will do without it.\n", s_VK_LAYER_KHRONOS_validation);
+            }
+
+            if (isExtensionPresent(s_VK_EXT_debug_utils))
+            {
+                m_required_extensions.push_back(s_VK_EXT_debug_utils);
+                hook_debug_print = true;
+                std::printf("info: found required instance extension %s\n", s_VK_EXT_debug_utils);
+            }
+            else
+            {
+                std::printf("warning: %s extension not found. will do without it.\n", s_VK_EXT_debug_utils);
+            }
+        }
+
+        vk::InstanceCreateInfo instance_info({}, &app_info, {layers_to_enable}, {m_required_extensions});
 
         m_instance = vk::raii::Instance{m_context, instance_info};
+
+        if (hook_debug_print)
+        {
+            vk::DebugUtilsMessengerCreateInfoEXT info(
+                {},
+                {vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError},
+                {vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance |
+                 vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation},
+                debugCallback, this);
+            m_debug_utils_messenger = m_instance.createDebugUtilsMessengerEXT(info);
+        }
     }
 
   private:
@@ -171,11 +257,23 @@ class VulkanApplication
     /** List of vulkan instance extensions required */
     std::vector<const char*> m_required_extensions;
 
+    /** List of layers available */
+    std::vector<vk::LayerProperties> m_layer_properties;
+
+    /** List of extensions available */
+    std::vector<vk::ExtensionProperties> m_extension_properties;
+
     /** Context to which is attached all RAII Vulkan objects */
     vk::raii::Context m_context;
 
+    /** should load validation layers if available ? */
+    bool m_load_validation_layers{false};
+
     /** the vulkan instance used throughout the tutorial code */
     vk::raii::Instance m_instance{nullptr};
+
+    /** if debug was enabled and validation layers have been activated */
+    vk::raii::DebugUtilsMessengerEXT m_debug_utils_messenger{nullptr};
 };
 
 } // namespace
@@ -186,6 +284,9 @@ extern "C" int main(int /* argc */, char** /* argv */)
     try
     {
         VulkanApplication app01{s_app_name, s_window_title, s_window_width, s_window_height};
+#if !NDEBUG
+        app01.setLoadValidationLayers(true);
+#endif
         res = app01.run();
     }
     catch (ApplicationError& e)
