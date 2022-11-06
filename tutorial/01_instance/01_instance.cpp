@@ -15,7 +15,9 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_vulkan.h>
 
+#include <utility>
 #include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan_raii.hpp>
 
 #include <cstdio>
 #include <cstdlib>
@@ -109,18 +111,6 @@ class VulkanApplication
         {
             throw ApplicationError("no vulkan support in your SDL library");
         }
-
-        if (false)
-        {
-            // creating a renderer is incompatible w/ vulkan at the moment because SDL
-            // doesn't have a Vulkan renderer
-            // and ends up binding something else entirely
-            m_renderer = unique_sdl_renderer{SDL_CreateRenderer(m_window.get(), -1, SDL_RENDERER_ACCELERATED)};
-            if (!m_renderer)
-            {
-                throw ApplicationError("failed creating a SDL renderer");
-            }
-        }
     }
 
     void getRequiredExtensionsFromSDL()
@@ -156,7 +146,7 @@ class VulkanApplication
 
         vk::InstanceCreateInfo instance_info({}, &app_info, {}, {m_required_extensions});
 
-        m_instance = vk::createInstance(instance_info);
+        m_instance = vk::raii::Instance{m_context, instance_info};
     }
 
   private:
@@ -173,19 +163,19 @@ class VulkanApplication
     int m_window_height;
 
     /** RAII handling proper closing of the SDL library */
-    unique_sdl_library m_library;
+    unique_sdl_library m_library{nullptr};
 
     /** RAII handling proper destruction of the SDL window */
-    unique_sdl_window m_window;
-
-    /** RAII handling proper destruction of the SDL renderer */
-    unique_sdl_renderer m_renderer;
+    unique_sdl_window m_window{nullptr};
 
     /** List of vulkan instance extensions required */
     std::vector<const char*> m_required_extensions;
 
+    /** Context to which is attached all RAII Vulkan objects */
+    vk::raii::Context m_context;
+
     /** the vulkan instance used throughout the tutorial code */
-    vk::Instance m_instance;
+    vk::raii::Instance m_instance{nullptr};
 };
 
 } // namespace
