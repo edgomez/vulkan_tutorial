@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 
 include(GNUInstallDirs)
 
-find_package(SDL2 REQUIRED)
 find_package(Vulkan REQUIRED)
 
 project(VulkanTutorial01

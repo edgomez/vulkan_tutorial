@@ -1,4 +1,5 @@
 ---
-BasedOnStyle: Mozilla
+BasedOnStyle: Microsoft
 IndentWidth: 4
 FixNamespaceComments: true
+PointerAlignment: Left

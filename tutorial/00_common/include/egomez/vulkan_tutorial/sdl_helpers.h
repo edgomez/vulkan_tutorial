@@ -14,12 +14,15 @@
 
 #include <memory>
 
-namespace egomez {
-namespace vulkan_tutorial {
+namespace egomez
+{
+namespace vulkan_tutorial
+{
 
 /** SDL tag type to be able to close the library w/ a functor */
 struct SDL_LibraryTag
-{};
+{
+};
 
 /** Functor that destroys known SDL types
  * - SDL itself (via the SDL_LibraryTag tag type)
@@ -29,13 +32,31 @@ struct SDL_LibraryTag
 struct SDLDeleter
 {
     /** SDL library closer */
-    void operator()(SDL_LibraryTag* l) { SDL_Quit(); }
+    void operator()(SDL_LibraryTag* l)
+    {
+        if (l)
+        {
+            SDL_Quit();
+        }
+    }
 
     /** SDL_Window destroyer */
-    void operator()(SDL_Window* w) { SDL_DestroyWindow(w); }
+    void operator()(SDL_Window* w)
+    {
+        if (w)
+        {
+            SDL_DestroyWindow(w);
+        }
+    }
 
     /** SDL_Renderer destroyer */
-    void operator()(SDL_Renderer* r) { SDL_DestroyRenderer(r); }
+    void operator()(SDL_Renderer* r)
+    {
+        if (r)
+        {
+            SDL_DestroyRenderer(r);
+        }
+    }
 };
 
 using unique_sdl_library = std::unique_ptr<SDL_LibraryTag, SDLDeleter>;
