@@ -99,6 +99,7 @@ class VulkanApplication
     void initVulkan()
     {
         createVulkanInstance();
+        pickupDevice();
     }
 
     void createSDLWindow()
@@ -164,7 +165,7 @@ class VulkanApplication
                                                                 extensionNamePredicate);
     }
 
-    static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT /* messageSeverity */,
+    static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
                                                         VkDebugUtilsMessageTypeFlagsEXT /* messageType */,
                                                         const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
                                                         void* /* pUserData */)
@@ -254,6 +255,45 @@ class VulkanApplication
         }
     }
 
+    void pickupDevice()
+    {
+        auto devices = m_instance.enumeratePhysicalDevices();
+        for (const auto& d : devices)
+        {
+            auto dprops = d.getProperties();
+            auto dfeats = d.getFeatures();
+            if ((dprops.deviceType == vk::PhysicalDeviceType::eDiscreteGpu ||
+                 dprops.deviceType == vk::PhysicalDeviceType::eIntegratedGpu) &&
+                dfeats.geometryShader)
+            {
+                std::printf("info: found device name=\"%s\" version=%d.%d.%d\n", dprops.deviceName.data(),
+                            VK_API_VERSION_MAJOR(dprops.driverVersion), VK_API_VERSION_MINOR(dprops.driverVersion),
+                            VK_API_VERSION_PATCH(dprops.driverVersion));
+            }
+
+            auto qprops = d.getQueueFamilyProperties();
+            int i = 0;
+            int graphicsQueue = -1;
+            for (const auto& qp : qprops)
+            {
+                if (qp.queueFlags & vk::QueueFlagBits::eGraphics)
+                {
+                    graphicsQueue = i;
+                    std::printf("info: found graphics queue index=%d\n", graphicsQueue);
+                    break;
+                }
+                i++;
+            }
+
+            if (graphicsQueue >= 0)
+            {
+                // Found our device
+                m_device = d;
+                break;
+            }
+        }
+    }
+
   private:
     /** Applicaiton name */
     const std::string m_app_name;
@@ -293,6 +333,9 @@ class VulkanApplication
 
     /** if debug was enabled and validation layers have been activated */
     vk::raii::DebugUtilsMessengerEXT m_debug_utils_messenger{nullptr};
+
+    /** Physical device */
+    vk::raii::PhysicalDevice m_device{nullptr};
 };
 
 } // namespace
