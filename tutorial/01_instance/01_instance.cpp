@@ -169,7 +169,26 @@ class VulkanApplication
                                                         const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
                                                         void* /* pUserData */)
     {
-        std::printf("validation layer: %s\n", pCallbackData->pMessage);
+        const char* severityCStr;
+        switch (messageSeverity)
+        {
+        case int(vk::DebugUtilsMessageSeverityFlagBitsEXT::eError):
+            severityCStr = "error";
+            break;
+        case int(vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo):
+            severityCStr = "info";
+            break;
+        case int(vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose):
+            severityCStr = "debug";
+            break;
+        case int(vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning):
+            severityCStr = "warning";
+            break;
+        default:
+            severityCStr = "unknown";
+            break;
+        }
+        std::printf("%s: %s\n", severityCStr, pCallbackData->pMessage);
         return VK_FALSE;
     }
 
