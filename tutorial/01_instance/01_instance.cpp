@@ -56,6 +56,37 @@ class VulkanApplication
     {
     }
 
+    void parseCommandLine(int argc, const char** argv)
+    {
+        for (int i = 1; i < argc; i++)
+        {
+            if (!strcmp(argv[i], "--debug"))
+            {
+                setLoadValidationLayers(true);
+            }
+            else if (!strcmp(argv[i], "--width") && i < argc - 1)
+            {
+                char* end;
+                long val = std::strtol(argv[i + 1], &end, 10);
+                if (end != argv[i + 1] && val > 0)
+                {
+                    m_window_width = int(val);
+                }
+                i++;
+            }
+            else if (!strcmp(argv[i], "--height") && i < argc - 1)
+            {
+                char* end;
+                long val = std::strtol(argv[i + 1], &end, 10);
+                if (end != argv[i + 1] && val > 0)
+                {
+                    m_window_height = int(val);
+                }
+                i++;
+            }
+        }
+    }
+
     int run()
     {
         initSDL();
@@ -340,15 +371,13 @@ class VulkanApplication
 
 } // namespace
 
-extern "C" int main(int /* argc */, char** /* argv */)
+extern "C" int main(int argc, const char** argv)
 {
     int res = EXIT_FAILURE;
     try
     {
         VulkanApplication app01{s_app_name, s_window_title, s_window_width, s_window_height};
-#if !NDEBUG
-        app01.setLoadValidationLayers(true);
-#endif
+        app01.parseCommandLine(argc, argv);
         res = app01.run();
     }
     catch (ApplicationError& e)
