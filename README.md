@@ -1,5 +1,15 @@
 # Vulkan Tutorial
 
+
+- [Vulkan Tutorial](#vulkan-tutorial)
+  - [Description](#description)
+  - [Requirements](#requirements)
+  - [How to build](#how-to-build)
+  - [Code structure](#code-structure)
+  - [Code style](#code-style)
+  - [Editing the code with Visual Studio Code](#editing-the-code-with-visual-studio-code)
+  - [License](#license)
+
 ## Description
 
 This is my attempt at following the [Vulkan Tutorial](https://vulkan-tutorial.com/),
@@ -13,7 +23,7 @@ I won't assume much about your development environment, but the code
 contained in this repository expects the following software to be
 installed:
 
-1. SDL2 development package
+1. SDL3 development package
 2. Vulkan development package
 3. Validation layer development package
 4. CMake >= 3.20 (not a hard requirement, but I know this version will work for sure)
@@ -21,10 +31,10 @@ installed:
 
 ## How to build
 
-```console
+```sh
 cd "${vulkan_tutorial_root}"
-cmake -B build/host -S . -G "Ninja Multi-Config" -DCMAKE_BUILD_TYPE=RelWithDebInfo
-cmake --build build/host --target all
+cmake -B build/host -S . -G "Ninja Multi-Config"
+cmake --build build/host --config RelWithDebInfo --target all
 ```
 
 Of course you can decide the generator that best fits your
