@@ -18,6 +18,8 @@ add_library(VulkanTutorialCommon
 )
 
 target_link_libraries(VulkanTutorialCommon
+    PRIVATE
+        VulkanTutorialCompileOptions
     PUBLIC
         SDL3::SDL3
 )

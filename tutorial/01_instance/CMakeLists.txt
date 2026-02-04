@@ -14,6 +14,7 @@ add_executable(VulkanTutorial01
 
 target_link_libraries(VulkanTutorial01
     PRIVATE
+        VulkanTutorialCompileOptions
         VulkanTutorialCommon
         Vulkan::Vulkan
         SDL3::SDL3
