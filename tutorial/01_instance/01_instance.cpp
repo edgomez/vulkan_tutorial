@@ -196,31 +196,41 @@ class VulkanApplication
                                                                 extensionNamePredicate);
     }
 
-    static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-                                                        VkDebugUtilsMessageTypeFlagsEXT /* messageType */,
-                                                        const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-                                                        void* /* pUserData */)
+    static VkBool32 debugCallback(vk::DebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+                                  vk::DebugUtilsMessageTypeFlagsEXT messageType,
+                                  const vk::DebugUtilsMessengerCallbackDataEXT* pCallbackData, void* /*pUserData*/)
     {
         const char* severityCStr;
         switch (messageSeverity)
         {
-        case int(vk::DebugUtilsMessageSeverityFlagBitsEXT::eError):
+        case vk::DebugUtilsMessageSeverityFlagBitsEXT::eError:
             severityCStr = "error";
             break;
-        case int(vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo):
+        case vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo:
             severityCStr = "info";
             break;
-        case int(vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose):
+        case vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose:
             severityCStr = "debug";
             break;
-        case int(vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning):
+        case vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning:
             severityCStr = "warning";
             break;
         default:
             severityCStr = "unknown";
             break;
         }
-        std::printf("%s: %s\n", severityCStr, pCallbackData->pMessage);
+
+        const char* messageTypeCStr = "unknown";
+        if (messageType & vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral)
+            messageTypeCStr = "general";
+        else if (messageType & vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance)
+            messageTypeCStr = "performance";
+        else if (messageType & vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation)
+            messageTypeCStr = "validation";
+        else if (messageType & vk::DebugUtilsMessageTypeFlagBitsEXT::eDeviceAddressBinding)
+            messageTypeCStr = "device address binding";
+
+        std::printf("[%s] %s: %s\n", messageTypeCStr, severityCStr, pCallbackData->pMessage);
         return VK_FALSE;
     }
 
@@ -276,12 +286,14 @@ class VulkanApplication
 
         if (hook_debug_print)
         {
-            vk::DebugUtilsMessengerCreateInfoEXT info(
-                {},
-                {vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError},
-                {vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance |
-                 vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation},
-                debugCallback, this);
+            vk::DebugUtilsMessengerCreateInfoEXT info{};
+            info.messageSeverity =
+                vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError;
+            info.messageType = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
+                               vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance |
+                               vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation;
+            info.pfnUserCallback = debugCallback;
+            info.pUserData = this;
             m_debug_utils_messenger = m_instance.createDebugUtilsMessengerEXT(info);
         }
     }
