@@ -286,6 +286,22 @@ class VulkanApplication
         }
     }
 
+    int rateDevice(const vk::PhysicalDevice& device)
+    {
+        int score = 0;
+
+        auto dprops = device.getProperties();
+        auto dfeats = device.getFeatures();
+
+        score += 100 * (!!(dprops.deviceType == vk::PhysicalDeviceType::eCpu));
+        score += 1000 * (!!(dprops.deviceType == vk::PhysicalDeviceType::eVirtualGpu));
+        score += 10000 * (!!(dprops.deviceType == vk::PhysicalDeviceType::eIntegratedGpu));
+        score += 100000 * (!!(dprops.deviceType == vk::PhysicalDeviceType::eDiscreteGpu));
+        score += dprops.limits.maxImageDimension2D;
+        score += dfeats.multiViewport;
+        return score;
+    }
+
     void pickupDevice()
     {
         auto devices = m_instance.enumeratePhysicalDevices();
