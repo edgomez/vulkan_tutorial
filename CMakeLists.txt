@@ -8,7 +8,7 @@ project(VulkanTutorial)
 if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/external/SDL/CMakeLists.txt")
     add_subdirectory(external/SDL)
 else()
-    find_package(SDL2 REQUIRED)
+    find_package(SDL3 REQUIRED)
 endif()
 
 # Recurse into the tutorial directories

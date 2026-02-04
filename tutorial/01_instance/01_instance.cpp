@@ -12,8 +12,8 @@
 
 #include <egomez/vulkan_tutorial/sdl_helpers.h>
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_vulkan.h>
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_vulkan.h>
 
 #include <utility> // needed for std::exchange in vulkan_raii !
 #include <vulkan/vulkan.hpp>
@@ -100,7 +100,7 @@ class VulkanApplication
             {
                 switch (event.type)
                 {
-                case SDL_QUIT:
+                case SDL_EVENT_QUIT:
                     must_quit = true;
                     break;
                 default:
@@ -108,8 +108,8 @@ class VulkanApplication
                 }
             }
 
-            // XXX: render something
-            // XXX: swap
+            SDL_RenderClear(m_renderer.get());
+            SDL_RenderPresent(m_renderer.get());
         }
 
         return EXIT_SUCCESS;
@@ -135,24 +135,25 @@ class VulkanApplication
 
     void createSDLWindow()
     {
-        int res = SDL_Init(SDL_INIT_EVERYTHING);
-        if (res)
+        bool success = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
+        if (!success)
         {
             throw ApplicationError("failed initalizing the SDL library");
         }
         m_library = unique_sdl_library{reinterpret_cast<SDL_LibraryTag*>(1)};
 
-        m_window =
-            unique_sdl_window{SDL_CreateWindow(m_window_title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                                               m_window_width, m_window_height, SDL_WINDOW_SHOWN | SDL_WINDOW_VULKAN)};
+        m_window = unique_sdl_window{
+            SDL_CreateWindow(m_window_title.c_str(), m_window_width, m_window_height, SDL_WINDOW_VULKAN)};
         if (!m_window)
         {
             throw ApplicationError("failed creating a SDL window");
         }
+        SDL_SetWindowBordered(m_window.get(), true);
 
-        if (!SDL_VIDEO_VULKAN)
+        m_renderer = unique_sdl_renderer{SDL_CreateRenderer(m_window.get(), "vulkan")};
+        if (!m_renderer)
         {
-            throw ApplicationError("no vulkan support in your SDL library");
+            throw ApplicationError("failed creating a SDL renderer");
         }
     }
 
@@ -160,7 +161,8 @@ class VulkanApplication
     {
         unsigned int required_extensions_nb = 0;
 
-        if (SDL_FALSE == SDL_Vulkan_GetInstanceExtensions(m_window.get(), &required_extensions_nb, nullptr))
+        const char* const* required_extensions = SDL_Vulkan_GetInstanceExtensions(&required_extensions_nb);
+        if (!required_extensions)
         {
             throw ApplicationError(SDL_GetError());
         }
@@ -169,11 +171,8 @@ class VulkanApplication
         {
             std::size_t cur_size = m_required_extensions.size();
             m_required_extensions.resize(cur_size + std::size_t(required_extensions_nb));
-            if (SDL_FALSE == SDL_Vulkan_GetInstanceExtensions(m_window.get(), &required_extensions_nb,
-                                                              m_required_extensions.data() + cur_size))
-            {
-                throw ApplicationError("failed getting the required vulkan extensions list from SDL");
-            }
+            std::memcpy(m_required_extensions.data() + cur_size, required_extensions,
+                        required_extensions_nb * sizeof(const char*));
         }
     }
 
@@ -372,6 +371,9 @@ class VulkanApplication
     /** RAII handling proper destruction of the SDL window */
     unique_sdl_window m_window{nullptr};
 
+    /** RAII handling proper destruction of the SDL renderer */
+    unique_sdl_renderer m_renderer{nullptr};
+
     /** List of vulkan instance extensions required */
     std::vector<const char*> m_required_extensions;
 
@@ -399,7 +401,7 @@ class VulkanApplication
 
 } // namespace
 
-extern "C" int main(int argc, const char** argv)
+int main(int argc, const char** argv)
 {
     int res = EXIT_FAILURE;
     try

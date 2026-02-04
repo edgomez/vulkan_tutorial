@@ -16,7 +16,7 @@ target_link_libraries(VulkanTutorial01
     PRIVATE
         VulkanTutorialCommon
         Vulkan::Vulkan
-        SDL2::SDL2
+        SDL3::SDL3
 )
 
 target_compile_features(VulkanTutorial01

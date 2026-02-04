@@ -19,7 +19,7 @@ add_library(VulkanTutorialCommon
 
 target_link_libraries(VulkanTutorialCommon
     PUBLIC
-        SDL2::SDL2
+        SDL3::SDL3
 )
 
 target_compile_features(VulkanTutorialCommon
