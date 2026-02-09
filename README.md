@@ -18,7 +18,7 @@ This is my attempt at following the [Vulkan Tutorial](https://vulkan-tutorial.co
 ## Tutorials
 
 - **00_common** - Common library with RAII helpers for SDL and scope guards
-- **01_instance** - Creating a Vulkan instance and selecting a physical device
+- **01_instance** - [Creating a Vulkan instance and selecting a physical device](tutorial/01_instance/README.md)
 
 ## Requirements
 
