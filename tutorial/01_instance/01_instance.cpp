@@ -30,14 +30,14 @@ namespace
 {
 using namespace egomez::vulkan_tutorial;
 
-static const std::string s_app_name{"VulkanTutorial01"};
-static const std::string s_window_title{"Vulkan Tutorial 01 - Getting an instance"};
-static const int s_window_width = 640;
-static const int s_window_height = 480;
+static constexpr const char s_app_name[] = "VulkanTutorial01";
+static constexpr const char s_window_title[] = "Vulkan Tutorial 01 - Getting an instance";
+static constexpr int s_window_width = 640;
+static constexpr int s_window_height = 480;
 
-static const char s_VK_EXT_debug_utils[] = "VK_EXT_debug_utils";
-static const char s_VK_LAYER_KHRONOS_validation[] = "VK_LAYER_KHRONOS_validation";
-static const char s_vkCreateDebugUtilsMessengerExt[] = "vkCreateDebugUtilsMessengerEXT";
+static constexpr char s_VK_EXT_debug_utils[] = "VK_EXT_debug_utils";
+static constexpr char s_VK_LAYER_KHRONOS_validation[] = "VK_LAYER_KHRONOS_validation";
+static constexpr char s_vkCreateDebugUtilsMessengerExt[] = "vkCreateDebugUtilsMessengerEXT";
 
 class ApplicationError : public std::runtime_error
 {
