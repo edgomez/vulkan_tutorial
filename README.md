@@ -1,10 +1,11 @@
 # Vulkan Tutorial
 
-
 - [Vulkan Tutorial](#vulkan-tutorial)
   - [Description](#description)
+  - [Tutorials](#tutorials)
   - [Requirements](#requirements)
   - [How to build](#how-to-build)
+  - [Running tutorials](#running-tutorials)
   - [Code structure](#code-structure)
   - [Code style](#code-style)
   - [Editing the code with Visual Studio Code](#editing-the-code-with-visual-studio-code)
@@ -12,10 +13,12 @@
 
 ## Description
 
-This is my attempt at following the [Vulkan Tutorial](https://vulkan-tutorial.com/),
-but I won't just compile their GitHub code.
+This is my attempt at following the [Vulkan Tutorial](https://vulkan-tutorial.com/) by implementing each step from scratch rather than copying existing code.
 
-Walking the path is probably going to be more fruitful on the long term.
+## Tutorials
+
+- **00_common** - Common library with RAII helpers for SDL and scope guards
+- **01_instance** - Creating a Vulkan instance and selecting a physical device
 
 ## Requirements
 
@@ -23,71 +26,77 @@ I won't assume much about your development environment, but the code
 contained in this repository expects the following software to be
 installed:
 
-1. SDL3 development package
-2. Vulkan development package
-3. Validation layer development package
+1. SDL3 development package (can be installed system-wide, or bootstrapped locally by running `git submodule update --init` to fetch SDL3 into the `external/` directory)
+2. Vulkan development package (must be installed system-wide)
+3. Validation layer development package (optional, but highly recommended for debug messages and error checking)
 4. CMake >= 3.20 (not a hard requirement, but I know this version will work for sure)
 5. A C++11 compiler (clang, g++ are fine, msvc may work)
 
 ## How to build
 
 ```sh
-cd "${vulkan_tutorial_root}"
 cmake -B build/host -S . -G "Ninja Multi-Config"
 cmake --build build/host --config RelWithDebInfo --target all
 ```
 
-Of course you can decide the generator that best fits your
-development environment.
+You can choose any generator that fits your development environment.
+
+## Running tutorials
+
+After building, executables are located in `build/host/tutorial/<chapter>/<config>/`:
+
+```sh
+# Run tutorial 01 with debug validation layers
+./build/host/tutorial/01_instance/RelWithDebInfo/vulkan-tutorial-01-instance --debug
+
+# Run with specific device
+./build/host/tutorial/01_instance/RelWithDebInfo/vulkan-tutorial-01-instance --device "NVIDIA GeForce RTX 3080"
+
+# Custom window size
+./build/host/tutorial/01_instance/RelWithDebInfo/vulkan-tutorial-01-instance --width 1920 --height 1080
+```
 
 ## Code structure
 
-The top layer `CMakeLists.txt` just recurses into the `tutorial` directory
-that then descends into each chapter.
+```text
+.
+├── CMakeLists.txt              # Top-level build configuration
+├── external/                   # Third-party dependencies (SDL3)
+├── tutorial/
+│   ├── CMakeLists.txt
+│   ├── 00_common/              # VulkanTutorialCommon library
+│   │   ├── CMakeLists.txt
+│   │   ├── include/
+│   │   │   └── egomez/vulkan_tutorial/
+│   │   │       ├── scope_guard.h
+│   │   │       └── sdl_helpers.h
+│   │   └── src/
+│   │       ├── scope_guard.cpp
+│   │       └── sdl_helpers.cpp
+│   └── 01_instance/            # Tutorial 01: Instance and device
+│       ├── CMakeLists.txt
+│       └── 01_instance.cpp
+└── script/                      # Utility scripts (formatting, etc.)
+```
 
-Note I added a `00_common` chapter that implements a `VulkanTutorialCommon`
-library to factor pieces of code that are used in more than one chapter.
-
-Each `CMakeLists.txt` tutorial file is written in a way that makes it
-standalone except for its dependency on the `VulkanTutorialCommon`
-library which is found in `00_common`
-
-The code is written in c++ 11, and the CMake code tries to apply modern
-CMake guidelines.
-
-I tend to add c++ files that just include their header counter part. This
-aims at ensuring the headers are self sufficient by including them first
-in the c++ compilation unit.
-
-Also note that `install()` instructions are added even though i doubt
-there is any value in ever installing the resulting compilation artefacts.
-
-The code is the interesting part in this repository, not the resulting
-binaries/headers.
+Each tutorial's `CMakeLists.txt` is standalone except for its dependency on `VulkanTutorialCommon`. The code is written in C++11, following modern CMake guidelines. Headers are self-sufficient - each has a corresponding `.cpp` file that includes it first to verify independence.
 
 ## Code style
 
-I don't like discussing coding style, I use clang-format to style my
-code... it does it relatively well, and I don't like to enforce a style
-manually</lazy programmer>
-
-Please apply the style as using the file `.clang-format` located at the
-root of this repository.
+This project uses clang-format for consistent code styling. Apply formatting using the `.clang-format` file at the repository root.
 
 ## Editing the code with Visual Studio Code
 
-That's what I personally use, but it's not mandatory. If you do so,
-I advise you installing the following extensions:
+Recommended extensions for VS Code:
 
-- C/C++ from Microsoft
-- Better C++ syntax from Jeff Hykin
-- CMake Tools from Microsoft
-- CMake Language Support from Jose Torres
+- **C/C++** (`ms-vscode.cpptools`) - Microsoft
+- **Better C++ Syntax** (`jeff-hykin.better-cpp-syntax`) - Jeff Hykin
+- **CMake Tools** (`ms-vscode.cmake-tools`) - Microsoft
+- **CMake Language Support** (`twxs.cmake`) - twxs
 
-With these, you can configure/build/edit the code comfortably w/ code
-completion/browsing/formatting etc...
+These provide code completion, browsing, formatting, and build integration.
 
 ## License
 
 The code found in this repository is licensed under the terms of the
-MIT license. See the [LICENSE](./LICENSE) file for the exact terms.
+MIT license. See the [LICENSE.md](./LICENSE.md) file for the exact terms.
