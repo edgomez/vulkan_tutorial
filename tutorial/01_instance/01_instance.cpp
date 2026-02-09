@@ -47,22 +47,29 @@ class ApplicationError : public std::runtime_error
     }
 };
 
+struct VulkanApplicationOptions
+{
+    bool load_validation_layers{false};
+    const char* device_name{nullptr};
+    int window_width{s_window_width};
+    int window_height{s_window_height};
+};
+
 class VulkanApplication
 {
   public:
-    VulkanApplication(const std::string& app_name, const std::string& window_title, int window_width, int window_height)
-        : m_app_name(app_name), m_window_title(window_title), m_window_width(window_width),
-          m_window_height(window_height)
+    VulkanApplication(const std::string& app_name, const std::string& window_title)
+        : m_app_name(app_name), m_window_title(window_title)
     {
     }
 
-    void parseCommandLine(int argc, const char** argv)
+    void parseCommandLine(int argc, const char** argv, VulkanApplicationOptions& options)
     {
         for (int i = 1; i < argc; i++)
         {
             if (!strcmp(argv[i], "--debug"))
             {
-                setLoadValidationLayers(true);
+                options.load_validation_layers = true;
             }
             else if (!strcmp(argv[i], "--width") && i < argc - 1)
             {
@@ -70,7 +77,7 @@ class VulkanApplication
                 long val = std::strtol(argv[i + 1], &end, 10);
                 if (end != argv[i + 1] && val > 0)
                 {
-                    m_window_width = int(val);
+                    options.window_width = int(val);
                 }
                 i++;
             }
@@ -80,17 +87,22 @@ class VulkanApplication
                 long val = std::strtol(argv[i + 1], &end, 10);
                 if (end != argv[i + 1] && val > 0)
                 {
-                    m_window_height = int(val);
+                    options.window_height = int(val);
                 }
+                i++;
+            }
+            else if (!strcmp(argv[i], "--device") && i < argc - 1)
+            {
+                options.device_name = argv[i + 1];
                 i++;
             }
         }
     }
 
-    int run()
+    int run(const VulkanApplicationOptions& options)
     {
-        initSDL();
-        initVulkan();
+        initSDL(options);
+        initVulkan(options);
 
         bool must_quit = false;
         while (!must_quit)
@@ -121,19 +133,19 @@ class VulkanApplication
     }
 
   protected:
-    void initSDL()
+    void initSDL(const VulkanApplicationOptions& options)
     {
-        createSDLWindow();
+        createSDLWindow(options);
         getRequiredExtensionsFromSDL();
     }
 
-    void initVulkan()
+    void initVulkan(const VulkanApplicationOptions& options)
     {
-        createVulkanInstance();
-        pickupDevice();
+        createVulkanInstance(options);
+        pickupDevice(options.device_name);
     }
 
-    void createSDLWindow()
+    void createSDLWindow(const VulkanApplicationOptions& options)
     {
         bool success = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
         if (!success)
@@ -143,7 +155,7 @@ class VulkanApplication
         m_library = unique_sdl_library{reinterpret_cast<SDL_LibraryTag*>(1)};
 
         m_window = unique_sdl_window{
-            SDL_CreateWindow(m_window_title.c_str(), m_window_width, m_window_height, SDL_WINDOW_VULKAN)};
+            SDL_CreateWindow(m_window_title.c_str(), options.window_width, options.window_height, SDL_WINDOW_VULKAN)};
         if (!m_window)
         {
             throw ApplicationError("failed creating a SDL window");
@@ -233,7 +245,7 @@ class VulkanApplication
         return VK_FALSE;
     }
 
-    void createVulkanInstance()
+    void createVulkanInstance(const VulkanApplicationOptions& options)
     {
         vk::ApplicationInfo app_info(m_app_name.c_str());
         app_info.apiVersion = VK_API_VERSION_1_0;
@@ -255,7 +267,7 @@ class VulkanApplication
         std::vector<const char*> layers_to_enable;
         bool hook_debug_print = false;
 
-        if (m_load_validation_layers)
+        if (options.load_validation_layers)
         {
             if (isLayerPresent(s_VK_LAYER_KHRONOS_validation))
             {
@@ -313,16 +325,26 @@ class VulkanApplication
         return score;
     }
 
-    void pickupDevice()
+    void pickupDevice(const char* name)
     {
         auto devices = m_instance.enumeratePhysicalDevices();
+        std::sort(std::begin(devices), std::end(devices),
+                  [this](const vk::PhysicalDevice& a, const vk::PhysicalDevice& b) -> bool {
+                      return rateDevice(a) > rateDevice(b);
+                  });
         for (const auto& d : devices)
         {
             auto dprops = d.getProperties();
-            auto dfeats = d.getFeatures();
-            if ((dprops.deviceType == vk::PhysicalDeviceType::eDiscreteGpu ||
-                 dprops.deviceType == vk::PhysicalDeviceType::eIntegratedGpu) &&
-                dfeats.geometryShader)
+            if (nullptr != name)
+            {
+                if (strcmp(name, dprops.deviceName.data()))
+                {
+                    continue;
+                }
+            }
+
+            if (dprops.deviceType == vk::PhysicalDeviceType::eDiscreteGpu ||
+                dprops.deviceType == vk::PhysicalDeviceType::eIntegratedGpu)
             {
                 std::printf("info: found device name=\"%s\" version=%d.%d.%d\n", dprops.deviceName.data(),
                             VK_API_VERSION_MAJOR(dprops.driverVersion), VK_API_VERSION_MINOR(dprops.driverVersion),
@@ -347,8 +369,13 @@ class VulkanApplication
             {
                 // Found our device
                 m_device = d;
+                std::printf("info: using device %s\n", dprops.deviceName.data());
                 break;
             }
+        }
+        if (nullptr == m_device)
+        {
+            throw ApplicationError("failed to find a suitable GPU");
         }
     }
 
@@ -406,9 +433,10 @@ int main(int argc, const char** argv)
     int res = EXIT_FAILURE;
     try
     {
-        VulkanApplication app01{s_app_name, s_window_title, s_window_width, s_window_height};
-        app01.parseCommandLine(argc, argv);
-        res = app01.run();
+        VulkanApplication app01{s_app_name, s_window_title};
+        VulkanApplicationOptions options;
+        app01.parseCommandLine(argc, argv, options);
+        res = app01.run(options);
     }
     catch (ApplicationError& e)
     {
