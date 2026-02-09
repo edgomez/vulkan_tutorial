@@ -191,7 +191,7 @@ class VulkanApplication
     bool isLayerPresent(const char* layer_name)
     {
         const auto layerNamePredicate = [&layer_name](const vk::LayerProperties& a) -> bool {
-            return !!strcmp(layer_name, a.layerName);
+            return !strcmp(layer_name, a.layerName);
         };
         return std::end(m_layer_properties) !=
                std::find_if(std::begin(m_layer_properties), std::end(m_layer_properties), layerNamePredicate);
@@ -200,7 +200,7 @@ class VulkanApplication
     bool isExtensionPresent(const char* extension_name)
     {
         const auto extensionNamePredicate = [&extension_name](const vk::ExtensionProperties& a) -> bool {
-            return !!strcmp(extension_name, a.extensionName);
+            return !strcmp(extension_name, a.extensionName);
         };
         return std::end(m_extension_properties) != std::find_if(std::begin(m_extension_properties),
                                                                 std::end(m_extension_properties),
@@ -316,12 +316,49 @@ class VulkanApplication
         auto dprops = device.getProperties();
         auto dfeats = device.getFeatures();
 
+        // Check queue families for required graphics queue and optional capabilities
+        auto qprops = device.getQueueFamilyProperties();
+        bool hasGraphicsQueue = false;
+        bool hasTransferQueue = false;
+        bool hasComputeQueue = false;
+        bool hasDedicatedTransferQueue = false;
+
+        for (const auto& qp : qprops)
+        {
+            hasGraphicsQueue = hasGraphicsQueue || !!(qp.queueFlags & vk::QueueFlagBits::eGraphics);
+            hasTransferQueue = hasTransferQueue || !!(qp.queueFlags & vk::QueueFlagBits::eTransfer);
+            hasDedicatedTransferQueue =
+                hasDedicatedTransferQueue ||
+                !!((qp.queueFlags & vk::QueueFlagBits::eTransfer) && !(qp.queueFlags & vk::QueueFlagBits::eGraphics));
+            hasComputeQueue = hasComputeQueue || !!(qp.queueFlags & vk::QueueFlagBits::eCompute);
+        }
+
+        // Device must have a graphics queue, otherwise it's unsuitable
+        if (!hasGraphicsQueue)
+        {
+            return 0;
+        }
+
+        // Device type scoring: Discrete > Integrated > Virtual > CPU
         score += 100 * (!!(dprops.deviceType == vk::PhysicalDeviceType::eCpu));
         score += 1000 * (!!(dprops.deviceType == vk::PhysicalDeviceType::eVirtualGpu));
         score += 10000 * (!!(dprops.deviceType == vk::PhysicalDeviceType::eIntegratedGpu));
         score += 100000 * (!!(dprops.deviceType == vk::PhysicalDeviceType::eDiscreteGpu));
+
+        // Larger texture support is better
         score += dprops.limits.maxImageDimension2D;
-        score += dfeats.multiViewport;
+
+        // Bonus for transfer queue support (better async data transfers)
+        score += 1000 * (!!hasTransferQueue);
+        // Extra bonus for dedicated transfer queue
+        score += 2000 * (!!hasDedicatedTransferQueue);
+        // Bonus for compute queue support (useful for post-processing, etc.)
+        score += 1000 * (!!hasComputeQueue);
+        // Bonus for geometry shaders
+        score += 500 * (!!dfeats.geometryShader);
+        // Bonus for multiViewport feature
+        score += 100 * (!!dfeats.multiViewport);
+
         return score;
     }
 
