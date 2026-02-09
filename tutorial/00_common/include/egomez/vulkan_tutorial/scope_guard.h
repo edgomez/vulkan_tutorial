@@ -40,9 +40,9 @@ template <typename F> class scope_guard
     F m_guard;
 };
 
-template <typename aF> static const scope_guard<aF> makeScopeGuard(const aF& f)
+template <typename F> static scope_guard<F> makeScopeGuard(const F& f)
 {
-    return scope_guard<aF>(f);
+    return scope_guard<F>(f);
 }
 
 #define SCOPE_GUARD_NAME_CONCAT_IMPL(a, b) a##b
