@@ -30,7 +30,7 @@ namespace
 {
 using namespace egomez::vulkan_tutorial;
 
-static const std::string s_app_name{"VulkanTurial01"};
+static const std::string s_app_name{"VulkanTutorial01"};
 static const std::string s_window_title{"Vulkan Tutorial 01 - Getting an instance"};
 static const int s_window_width = 640;
 static const int s_window_height = 480;
@@ -150,7 +150,7 @@ class VulkanApplication
         bool success = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
         if (!success)
         {
-            throw ApplicationError("failed initalizing the SDL library");
+            throw ApplicationError("failed initializing the SDL library");
         }
         m_library = unique_sdl_library{reinterpret_cast<SDL_LibraryTag*>(1)};
 
@@ -417,7 +417,7 @@ class VulkanApplication
     }
 
   private:
-    /** Applicaiton name */
+    /** Application name */
     const std::string m_app_name;
 
     /** Window title */
@@ -481,7 +481,7 @@ int main(int argc, const char** argv)
     }
     catch (vk::SystemError& e)
     {
-        std::printf("vulkan error: %s (%d)", e.what(), e.code().value());
+        std::printf("vulkan error: %s (%d)\n", e.what(), e.code().value());
     }
     catch (...)
     {
