@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------
  * Vulkan Tutorial Common Library
  *
- * Lean and simple scope_guard implemenation for basic RAII needs
+ * Lean and simple scope_guard implementation for basic RAII needs
  *
  * SPDX-FileCopyrightText: 2022 Edouard Gomez
  * SPDX-License-Identifier: MIT
@@ -24,19 +24,19 @@ template <typename F> class scope_guard
 
     ~scope_guard()
     {
-        if (!m_commit)
+        if (!m_dismissed)
         {
             m_guard();
         }
     }
 
-    void commit()
+    void dismiss()
     {
-        m_commit = true;
+        m_dismissed = true;
     }
 
   private:
-    bool m_commit = false;
+    bool m_dismissed = false;
     F m_guard;
 };
 
