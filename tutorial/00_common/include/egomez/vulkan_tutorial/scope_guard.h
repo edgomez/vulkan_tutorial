@@ -3,7 +3,7 @@
  *
  * Lean and simple scope_guard implementation for basic RAII needs
  *
- * SPDX-FileCopyrightText: 2022 Edouard Gomez
+ * SPDX-FileCopyrightText: 2022-2026 Edouard Gomez
  * SPDX-License-Identifier: MIT
  * ----------------------------------------------------------------------- */
 

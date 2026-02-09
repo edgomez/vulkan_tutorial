@@ -6,7 +6,7 @@
  * See:
  * https://vulkan-tutorial.com/Overview#page_Step-1-Instance-and-physical-device-selection
  *
- * SPDX-FileCopyrightText: 2022 Edouard Gomez
+ * SPDX-FileCopyrightText: 2022-2026 Edouard Gomez
  * SPDX-License-Identifier: MIT
  * ----------------------------------------------------------------------- */
 

@@ -4,7 +4,7 @@
  * A few helpers to facilitate SDL usage à la c++11 style
  *
  *
- * SPDX-FileCopyrightText: 2022 Edouard Gomez
+ * SPDX-FileCopyrightText: 2022-2026 Edouard Gomez
  * SPDX-License-Identifier: MIT
  * ----------------------------------------------------------------------- */
 
