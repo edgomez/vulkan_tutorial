@@ -1,4 +1,4 @@
-/* --------------------------------------------------------------------------
+﻿/* --------------------------------------------------------------------------
  * Vulkan Tutorial Common Library
  *
  * Lean and simple scope_guard implementation for basic RAII needs
