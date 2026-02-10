@@ -1,0 +1,16 @@
+[
+    {
+        "name": "container.debian13.gcc14",
+        "compilers": {
+            "C": "/usr/bin/gcc-14",
+            "CXX": "/usr/bin/g++-14"
+        }
+    },
+    {
+        "name": "container.debian13.clang19",
+        "compilers": {
+            "C": "/usr/bin/clang-19",
+            "CXX": "/usr/bin/clang++-19"
+        }
+    }
+]
