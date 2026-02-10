@@ -37,7 +37,7 @@ template <typename F> class scope_guard
 
   private:
     bool m_dismissed = false;
-    F m_guard;
+    F    m_guard;
 };
 
 template <typename F> static scope_guard<F> makeScopeGuard(const F& f)

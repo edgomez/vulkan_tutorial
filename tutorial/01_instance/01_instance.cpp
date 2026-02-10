@@ -32,8 +32,8 @@ using namespace egomez::vulkan_tutorial;
 
 static constexpr const char s_app_name[] = "VulkanTutorial01";
 static constexpr const char s_window_title[] = "Vulkan Tutorial 01 - Getting an instance";
-static constexpr int s_window_width = 640;
-static constexpr int s_window_height = 480;
+static constexpr int        s_window_width = 640;
+static constexpr int        s_window_height = 480;
 
 static constexpr char s_VK_EXT_debug_utils[] = "VK_EXT_debug_utils";
 static constexpr char s_VK_LAYER_KHRONOS_validation[] = "VK_LAYER_KHRONOS_validation";
@@ -49,10 +49,10 @@ class ApplicationError : public std::runtime_error
 
 struct VulkanApplicationOptions
 {
-    bool load_validation_layers{false};
+    bool        load_validation_layers{false};
     const char* device_name{nullptr};
-    int window_width{s_window_width};
-    int window_height{s_window_height};
+    int         window_width{s_window_width};
+    int         window_height{s_window_height};
 };
 
 class VulkanApplication
@@ -74,7 +74,7 @@ class VulkanApplication
             else if (!strcmp(argv[i], "--width") && i < argc - 1)
             {
                 char* end;
-                long val = std::strtol(argv[i + 1], &end, 10);
+                long  val = std::strtol(argv[i + 1], &end, 10);
                 if (end != argv[i + 1] && val > 0)
                 {
                     options.window_width = int(val);
@@ -84,7 +84,7 @@ class VulkanApplication
             else if (!strcmp(argv[i], "--height") && i < argc - 1)
             {
                 char* end;
-                long val = std::strtol(argv[i + 1], &end, 10);
+                long  val = std::strtol(argv[i + 1], &end, 10);
                 if (end != argv[i + 1] && val > 0)
                 {
                     options.window_height = int(val);
@@ -207,8 +207,8 @@ class VulkanApplication
                                                                 extensionNamePredicate);
     }
 
-    static VkBool32 debugCallback(vk::DebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-                                  vk::DebugUtilsMessageTypeFlagsEXT messageType,
+    static VkBool32 debugCallback(vk::DebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
+                                  vk::DebugUtilsMessageTypeFlagsEXT             messageType,
                                   const vk::DebugUtilsMessengerCallbackDataEXT* pCallbackData, void* /*pUserData*/)
     {
         const char* severityCStr;
@@ -265,7 +265,7 @@ class VulkanApplication
 #endif // 0
 
         std::vector<const char*> layers_to_enable;
-        bool hook_debug_print = false;
+        bool                     hook_debug_print = false;
 
         if (options.load_validation_layers)
         {
@@ -389,8 +389,8 @@ class VulkanApplication
             }
 
             auto qprops = d.getQueueFamilyProperties();
-            int i = 0;
-            int graphicsQueue = -1;
+            int  i = 0;
+            int  graphicsQueue = -1;
             for (const auto& qp : qprops)
             {
                 if (qp.queueFlags & vk::QueueFlagBits::eGraphics)
@@ -470,7 +470,7 @@ int main(int argc, const char** argv)
     int res = EXIT_FAILURE;
     try
     {
-        VulkanApplication app01{s_app_name, s_window_title};
+        VulkanApplication        app01{s_app_name, s_window_title};
         VulkanApplicationOptions options;
         app01.parseCommandLine(argc, argv, options);
         res = app01.run(options);

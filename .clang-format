@@ -1,5 +1,26 @@
 ---
 BasedOnStyle: Microsoft
 IndentWidth: 4
-FixNamespaceComments: true
+UseTab: Never
+TabWidth: 4
 PointerAlignment: Left
+BraceWrapping:
+    AfterControlStatement: true
+    AfterFunction: true
+    AfterClass: true
+    AfterStruct: true
+    AfterEnum: true
+    BeforeElse: true
+    SplitEmptyFunction: true
+    SplitEmptyRecord: true
+    SplitEmptyNamespace: true
+    IndentBraces: false
+AllowShortIfStatementsOnASingleLine: false
+AllowShortBlocksOnASingleLine: false
+AllowShortFunctionsOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+ColumnLimit: 120
+DerivePointerAlignment: false
+AlignConsecutiveDeclarations: true
+FixNamespaceComments: true
