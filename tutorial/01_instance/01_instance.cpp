@@ -37,7 +37,8 @@ static constexpr int        s_window_height = 480;
 
 static constexpr char s_VK_EXT_debug_utils[] = "VK_EXT_debug_utils";
 static constexpr char s_VK_LAYER_KHRONOS_validation[] = "VK_LAYER_KHRONOS_validation";
-static constexpr char s_vkCreateDebugUtilsMessengerExt[] = "vkCreateDebugUtilsMessengerEXT";
+
+[[maybe_unused]] static constexpr char s_vkCreateDebugUtilsMessengerExt[] = "vkCreateDebugUtilsMessengerEXT";
 
 class ApplicationError : public std::runtime_error
 {
@@ -346,7 +347,7 @@ class VulkanApplication
         score += 100000 * (!!(dprops.deviceType == vk::PhysicalDeviceType::eDiscreteGpu));
 
         // Larger texture support is better
-        score += dprops.limits.maxImageDimension2D;
+        score += static_cast<int>(dprops.limits.maxImageDimension2D);
 
         // Bonus for transfer queue support (better async data transfers)
         score += 1000 * (!!hasTransferQueue);
@@ -422,12 +423,6 @@ class VulkanApplication
 
     /** Window title */
     const std::string m_window_title;
-
-    /** Window width */
-    int m_window_width;
-
-    /** Window height */
-    int m_window_height;
 
     /** RAII handling proper closing of the SDL library */
     unique_sdl_library m_library{nullptr};

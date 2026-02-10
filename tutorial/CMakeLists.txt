@@ -8,11 +8,19 @@ if (   CMAKE_CXX_COMPILER_ID MATCHES ".*LLVM.*"
     target_compile_options(VulkanTutorialCompileOptions
         INTERFACE
             "-Wall" "-Wextra" "-Werror"
+            "-Wpedantic" "-Wshadow" "-Wnon-virtual-dtor" "-Wold-style-cast" "-Wcast-align" "-Woverloaded-virtual"
+            "-Wconversion" "-Wsign-conversion" "-Wnull-dereference" "-Wdouble-promotion" "-Wformat=2"
     )
+    if(CMAKE_CXX_COMPILER_ID MATCHES ".*Clang.*")
+        target_compile_options(VulkanTutorialCompileOptions
+            INTERFACE
+                "-Wdocumentation" "-Wno-c++98-compat" "-Wno-c++98-compat-pedantic"
+        )
+    endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     target_compile_options(VulkanTutorialCompileOptions
         INTERFACE
-            "/W3" "/WX"
+            "/W4" "/WX" "/permissive-" "/we4251" "/we4275" "/we4661"
     )
 endif()
 
