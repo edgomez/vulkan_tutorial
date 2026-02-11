@@ -1,3 +1,6 @@
 [submodule "external/SDL"]
 	path = external/SDL
 	url = https://github.com/libsdl-org/SDL
+[submodule "external/googletest"]
+	path = external/googletest
+	url = https://github.com/google/googletest
