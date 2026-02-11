@@ -1,4 +1,8 @@
-cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
+project(VulkanTutorialTests
+    LANGUAGES CXX
+)
+
+include(GoogleTest)
 
 add_executable(VulkanTutorialTests
     main.cpp
@@ -13,7 +17,17 @@ target_link_libraries(VulkanTutorialTests
         GTest::gtest
 )
 
+target_compile_features(VulkanTutorialTests
+    PRIVATE
+        cxx_std_11
+)
+
 set_target_properties(VulkanTutorialTests
     PROPERTIES
-        OUTPUT_NAME "vulkan-tutorial-tests"
+        OUTPUT_NAME vulkan-tutorial-tests
 )
+
+enable_testing()
+gtest_discover_tests(VulkanTutorialTests)
+
+install(TARGETS VulkanTutorialTests RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")

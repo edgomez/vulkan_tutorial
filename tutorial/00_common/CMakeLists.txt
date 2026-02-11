@@ -1,7 +1,3 @@
-cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
-
-include(GNUInstallDirs)
-
 project(VulkanTutorial00
     LANGUAGES CXX
 )
@@ -35,5 +31,5 @@ target_include_directories(VulkanTutorialCommon
         "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
 
-install(TARGETS VulkanTutorialCommon LIBRARY DESTINATION "${CMAKE_INSTALL_LIBRARYDIR}")
-install(DIRECTORY include DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+install(TARGETS VulkanTutorialCommon ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+install(DIRECTORY include/egomez DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")

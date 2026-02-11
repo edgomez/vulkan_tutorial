@@ -1,9 +1,12 @@
 cmake_minimum_required(VERSION 3.21 FATAL_ERROR)
 
-project(VulkanTutorial)
+project(VulkanTutorial
+    LANGUAGES C CXX
+    VERSION 0.0.1
+)
 
 # ---------------------------------------------------------------------------
-# External dependencies
+# External dependencies and cmake modules
 # ---------------------------------------------------------------------------
 
 # it's preferable to use the SDL system library but it's still
@@ -20,6 +23,8 @@ if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/external/googletest/CMakeLists.txt")
 else()
     find_package(GTest)
 endif()
+
+include(GNUInstallDirs)
 
 # ---------------------------------------------------------------------------
 # Compilation options common to the tutorial/tests code

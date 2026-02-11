@@ -1,12 +1,8 @@
-cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
-
-include(GNUInstallDirs)
-
-find_package(Vulkan REQUIRED)
-
 project(VulkanTutorial01
     LANGUAGES CXX
 )
+
+find_package(Vulkan REQUIRED)
 
 add_executable(VulkanTutorial01
     01_instance.cpp
@@ -21,7 +17,7 @@ target_link_libraries(VulkanTutorial01
 )
 
 target_compile_features(VulkanTutorial01
-    PUBLIC
+    PRIVATE
         cxx_std_11
 )
 
