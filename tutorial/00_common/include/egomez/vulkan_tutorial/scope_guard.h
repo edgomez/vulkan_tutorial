@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include <utility>
+
 namespace egomez
 {
 namespace vulkan_tutorial
@@ -18,7 +20,7 @@ namespace vulkan_tutorial
 template <typename F> class scope_guard
 {
   public:
-    scope_guard(const F& f) : m_guard(f)
+    scope_guard(F&& f) : m_guard(std::forward<F>(f))
     {
     }
 
@@ -40,9 +42,9 @@ template <typename F> class scope_guard
     F    m_guard;
 };
 
-template <typename F> static scope_guard<F> makeScopeGuard(const F& f)
+template <typename F> static scope_guard<F> makeScopeGuard(F&& f)
 {
-    return scope_guard<F>(f);
+    return scope_guard<F>(std::forward<F>(f));
 }
 
 #define SCOPE_GUARD_NAME_CONCAT_IMPL(a, b) a##b
