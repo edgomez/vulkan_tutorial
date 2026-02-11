@@ -93,20 +93,9 @@ If using this project via `add_subdirectory()`, tests are disabled by default. E
 ├── external/                   # Third-party dependencies (SDL3, Google Test)
 ├── tests/                      # Unit tests (built if Google Test is available)
 ├── tutorial/
-│   ├── CMakeLists.txt
 │   ├── 00_common/              # VulkanTutorialCommon library
-│   │   ├── CMakeLists.txt
-│   │   ├── include/
-│   │   │   └── egomez/vulkan_tutorial/
-│   │   │       ├── scope_guard.h
-│   │   │       └── sdl_helpers.h
-│   │   └── src/
-│   │       ├── scope_guard.cpp
-│   │       └── sdl_helpers.cpp
 │   └── 01_instance/            # Tutorial 01: Instance and device
-│       ├── CMakeLists.txt
-│       └── 01_instance.cpp
-└── script/                      # Utility scripts (formatting, etc.)
+└── script/                     # Utility scripts (formatting, etc.)
 ```
 
 Each tutorial's `CMakeLists.txt` is standalone except for its dependency on `VulkanTutorialCommon`. The code is written in C++11, following modern CMake guidelines. Headers are self-sufficient - each has a corresponding `.cpp` file that includes it first to verify independence.
