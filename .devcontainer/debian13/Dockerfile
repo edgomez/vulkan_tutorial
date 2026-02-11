@@ -5,7 +5,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         build-essential \
-        clang g++ \
+        clang gdb gcc g++ \
         cmake ninja-build \
         git dos2unix clang-format \
         libsdl3-dev libvulkan-dev vulkan-validationlayers \
