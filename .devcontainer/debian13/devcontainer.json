@@ -1,7 +1,11 @@
 {
     "name": "Debian 13 Vulkan Tutorial Dev Container",
     "build": {
-        "dockerfile": "Dockerfile"
+        "dockerfile": "Dockerfile",
+        "args": {
+            "USER_UID": "${localEnv:UID:1000}",
+            "USER_GID": "${localEnv:GID:1000}"
+        }
     },
     "settings": {
         "terminal.integrated.shell.linux": "/bin/bash",
@@ -11,11 +15,44 @@
         "cmake.buildDirectory": "${workspaceFolder}/build/${buildKit}",
         "cmake.additionalKits": [
             "${workspaceFolder}/.devcontainer/debian13/cmake-kits.json"
-        ],
+        ]
     },
     "extensions": [
         "ms-vscode.cpptools",
         "ms-vscode.cmake-tools",
-        "jeff-hykin.better-cpp-syntax",
-    ]
+        "jeff-hykin.better-cpp-syntax"
+    ],
+    // ── GPU pass-through & Podman ───────────────────────────────────
+    // --userns=keep-id: maps the host UID 1:1 into the container so
+    //   socket and /dev/dri permissions just work under rootless Podman.
+    // --device=/dev/dri: exposes the host GPU for Vulkan / GL rendering.
+    // --security-opt=label=disable: prevents SELinux from blocking
+    //   access to the bind-mounted sockets.
+    "runArgs": [
+        "--userns=keep-id",
+        "--device=/dev/dri",
+        "--group-add=keep-groups",
+        "--security-opt=label=disable"
+    ],
+    // ── Display socket mounts ───────────────────────────────────────
+    // Mount X11 and Wayland sockets from the host into the container.
+    "mounts": [
+        // X11 socket directory
+        "type=bind,source=/tmp/.X11-unix,target=/tmp/.X11-unix,readonly",
+        // Wayland socket lives in XDG_RUNTIME_DIR on the host
+        "type=bind,source=${localEnv:XDG_RUNTIME_DIR}/${localEnv:WAYLAND_DISPLAY},target=/tmp/${localEnv:WAYLAND_DISPLAY},readonly"
+    ],
+    // ── Environment variables ───────────────────────────────────────
+    "containerEnv": {
+        // X11
+        "DISPLAY": "${localEnv:DISPLAY}",
+        // Wayland
+        "WAYLAND_DISPLAY": "/tmp/${localEnv:WAYLAND_DISPLAY}",
+        "XDG_RUNTIME_DIR": "/tmp/xdg-runtime",
+        // Let Mesa / SDL pick the best backend automatically.
+        // Override with SDL_VIDEO_DRIVER=x11 or =wayland to force one.
+        "SDL_VIDEO_DRIVER": ""
+    },
+    // Ensure XDG_RUNTIME_DIR exists and is private for dconf/libdecor usage.
+    "postStartCommand": "mkdir -p /tmp/xdg-runtime && chmod 700 /tmp/xdg-runtime"
 }
