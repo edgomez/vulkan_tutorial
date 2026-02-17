@@ -20,6 +20,7 @@ This is my attempt at following the [Vulkan Tutorial](https://vulkan-tutorial.co
 
 - **00_common** - Common library with RAII helpers for SDL and scope guards
 - **01_instance** - [Creating a Vulkan instance and selecting a physical device](tutorial/01_instance/README.md)
+- **01_instance_nothrow** - [Same as 01_instance but without exceptions](tutorial/01_instance_nothrow/README.md)
 
 ## Requirements
 
@@ -56,6 +57,9 @@ After building, executables are located in `build/host/tutorial/<chapter>/<confi
 
 # Custom window size
 ./build/host/tutorial/01_instance/RelWithDebInfo/vulkan-tutorial-01-instance --width 1920 --height 1080
+
+# Run the nothrow variant
+./build/host/tutorial/01_instance_nothrow/RelWithDebInfo/vulkan-tutorial-01-instance-nothrow --debug
 ```
 
 ## Running tests
@@ -94,7 +98,8 @@ If using this project via `add_subdirectory()`, tests are disabled by default. E
 ├── tests/                      # Unit tests (built if Google Test is available)
 ├── tutorial/
 │   ├── 00_common/              # VulkanTutorialCommon library
-│   └── 01_instance/            # Tutorial 01: Instance and device
+│   ├── 01_instance/            # Tutorial 01: Instance and device
+│   └── 01_instance_nothrow/    # Tutorial 01 (nothrow variant)
 └── script/                     # Utility scripts (formatting, etc.)
 ```
 

@@ -11,6 +11,8 @@ add_library(VulkanTutorialCommon
 
     ${SRC_DIR}/sdl_helpers.cpp
     ${INC_DIR}/sdl_helpers.h
+
+    ${INC_DIR}/explicit_buffer.h
 )
 
 target_link_libraries(VulkanTutorialCommon
