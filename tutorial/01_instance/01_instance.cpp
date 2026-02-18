@@ -310,11 +310,18 @@ class VulkanApplication
         }
     }
 
-    int rateDevice(const vk::PhysicalDevice& device)
+    struct DeviceEvaluation
     {
-        int score = 0;
+        vk::PhysicalDeviceProperties properties;
+        int                          score{0};
+        int                          graphics_queue{-1};
+    };
 
-        auto dprops = device.getProperties();
+    DeviceEvaluation evaluateDevice(const vk::raii::PhysicalDevice& device)
+    {
+        DeviceEvaluation evaluation;
+
+        evaluation.properties = device.getProperties();
         auto dfeats = device.getFeatures();
 
         // Check queue families for required graphics queue and optional capabilities
@@ -324,6 +331,7 @@ class VulkanApplication
         bool hasComputeQueue = false;
         bool hasDedicatedTransferQueue = false;
 
+        int queue_index = 0;
         for (const auto& qp : qprops)
         {
             hasGraphicsQueue = hasGraphicsQueue || !!(qp.queueFlags & vk::QueueFlagBits::eGraphics);
@@ -332,47 +340,62 @@ class VulkanApplication
                 hasDedicatedTransferQueue ||
                 !!((qp.queueFlags & vk::QueueFlagBits::eTransfer) && !(qp.queueFlags & vk::QueueFlagBits::eGraphics));
             hasComputeQueue = hasComputeQueue || !!(qp.queueFlags & vk::QueueFlagBits::eCompute);
+
+            if (evaluation.graphics_queue < 0 && (qp.queueFlags & vk::QueueFlagBits::eGraphics))
+            {
+                evaluation.graphics_queue = queue_index;
+            }
+
+            queue_index++;
         }
 
         // Device must have a graphics queue, otherwise it's unsuitable
         if (!hasGraphicsQueue)
         {
-            return 0;
+            return evaluation;
         }
 
         // Device type scoring: Discrete > Integrated > Virtual > CPU
-        score += 100 * (!!(dprops.deviceType == vk::PhysicalDeviceType::eCpu));
-        score += 1000 * (!!(dprops.deviceType == vk::PhysicalDeviceType::eVirtualGpu));
-        score += 10000 * (!!(dprops.deviceType == vk::PhysicalDeviceType::eIntegratedGpu));
-        score += 100000 * (!!(dprops.deviceType == vk::PhysicalDeviceType::eDiscreteGpu));
+        evaluation.score += 100 * (!!(evaluation.properties.deviceType == vk::PhysicalDeviceType::eCpu));
+        evaluation.score += 1000 * (!!(evaluation.properties.deviceType == vk::PhysicalDeviceType::eVirtualGpu));
+        evaluation.score += 10000 * (!!(evaluation.properties.deviceType == vk::PhysicalDeviceType::eIntegratedGpu));
+        evaluation.score += 100000 * (!!(evaluation.properties.deviceType == vk::PhysicalDeviceType::eDiscreteGpu));
 
         // Larger texture support is better
-        score += static_cast<int>(dprops.limits.maxImageDimension2D);
+        evaluation.score += static_cast<int>(evaluation.properties.limits.maxImageDimension2D);
 
         // Bonus for transfer queue support (better async data transfers)
-        score += 1000 * (!!hasTransferQueue);
+        evaluation.score += 1000 * (!!hasTransferQueue);
         // Extra bonus for dedicated transfer queue
-        score += 2000 * (!!hasDedicatedTransferQueue);
+        evaluation.score += 2000 * (!!hasDedicatedTransferQueue);
         // Bonus for compute queue support (useful for post-processing, etc.)
-        score += 1000 * (!!hasComputeQueue);
+        evaluation.score += 1000 * (!!hasComputeQueue);
         // Bonus for geometry shaders
-        score += 500 * (!!dfeats.geometryShader);
+        evaluation.score += 500 * (!!dfeats.geometryShader);
         // Bonus for multiViewport feature
-        score += 100 * (!!dfeats.multiViewport);
+        evaluation.score += 100 * (!!dfeats.multiViewport);
 
-        return score;
+        return evaluation;
     }
 
     void pickupDevice(const char* name)
     {
         auto devices = m_instance.enumeratePhysicalDevices();
-        std::sort(std::begin(devices), std::end(devices),
-                  [this](const vk::PhysicalDevice& a, const vk::PhysicalDevice& b) -> bool {
-                      return rateDevice(a) > rateDevice(b);
-                  });
-        for (const auto& d : devices)
+
+        bool             has_best_device = false;
+        std::size_t      best_device_index = 0;
+        DeviceEvaluation best_evaluation{};
+
+        for (std::size_t i = 0; i < devices.size(); ++i)
         {
-            auto dprops = d.getProperties();
+            DeviceEvaluation evaluation = evaluateDevice(devices[i]);
+            const auto&      dprops = evaluation.properties;
+
+            if (evaluation.score <= 0)
+            {
+                continue;
+            }
+
             if (nullptr != name)
             {
                 if (strcmp(name, dprops.deviceName.data()))
@@ -380,6 +403,19 @@ class VulkanApplication
                     continue;
                 }
             }
+
+            if (!has_best_device || evaluation.score > best_evaluation.score)
+            {
+                has_best_device = true;
+                best_device_index = i;
+                best_evaluation = evaluation;
+            }
+        }
+
+        if (has_best_device)
+        {
+            const auto& d = devices[best_device_index];
+            const auto& dprops = best_evaluation.properties;
 
             if (dprops.deviceType == vk::PhysicalDeviceType::eDiscreteGpu ||
                 dprops.deviceType == vk::PhysicalDeviceType::eIntegratedGpu)
@@ -389,28 +425,11 @@ class VulkanApplication
                             VK_API_VERSION_PATCH(dprops.driverVersion));
             }
 
-            auto qprops = d.getQueueFamilyProperties();
-            int  i = 0;
-            int  graphicsQueue = -1;
-            for (const auto& qp : qprops)
-            {
-                if (qp.queueFlags & vk::QueueFlagBits::eGraphics)
-                {
-                    graphicsQueue = i;
-                    std::printf("info: found graphics queue index=%d\n", graphicsQueue);
-                    break;
-                }
-                i++;
-            }
-
-            if (graphicsQueue >= 0)
-            {
-                // Found our device
-                m_device = d;
-                std::printf("info: using device %s\n", dprops.deviceName.data());
-                break;
-            }
+            std::printf("info: found graphics queue index=%d\n", best_evaluation.graphics_queue);
+            m_device = d;
+            std::printf("info: using device %s\n", dprops.deviceName.data());
         }
+
         if (nullptr == m_device)
         {
             throw ApplicationError("failed to find a suitable GPU");
