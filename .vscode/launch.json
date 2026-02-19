@@ -30,5 +30,31 @@
                 }
             ]
         },
+        {
+            "name": "(gdb) Tutorial 01 Instance (nothrow)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${command:cmake.buildDirectory}/tutorial/01_instance_nothrow/${command:cmake.buildType}/vulkan-tutorial-01-instance-nothrow",
+            "args": [
+                "--debug"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
     ]
 }
