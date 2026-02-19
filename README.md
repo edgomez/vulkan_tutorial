@@ -44,6 +44,22 @@ cmake --build build/host --config RelWithDebInfo --target all
 
 You can choose any generator that fits your development environment.
 
+Dependency provider selection can be overridden explicitly:
+
+```sh
+# Force system packages
+cmake -B build/host -S . -G "Ninja Multi-Config" \
+  -DVULKAN_TUTORIAL_SDL3_PROVIDER=SYSTEM \
+  -DVULKAN_TUTORIAL_GTEST_PROVIDER=SYSTEM
+
+# Force bundled submodules from external/
+cmake -B build/host -S . -G "Ninja Multi-Config" \
+  -DVULKAN_TUTORIAL_SDL3_PROVIDER=EXTERNAL \
+  -DVULKAN_TUTORIAL_GTEST_PROVIDER=EXTERNAL
+```
+
+Accepted values are `AUTO` (default), `SYSTEM`, and `EXTERNAL`.
+
 ## Running tutorials
 
 After building, executables are located in `build/host/tutorial/<chapter>/<config>/`:
@@ -88,6 +104,9 @@ cmake -B build/host -S . -G "Ninja Multi-Config" -DVULKAN_TUTORIAL_BUILD_TESTS=O
 ```
 
 If using this project via `add_subdirectory()`, tests are disabled by default. Enable them with `-DVULKAN_TUTORIAL_BUILD_TESTS=ON`.
+
+If `VULKAN_TUTORIAL_GTEST_PROVIDER=SYSTEM` is set, CMake requires a system Google Test package.
+If `VULKAN_TUTORIAL_GTEST_PROVIDER=EXTERNAL` is set, CMake requires `external/googletest` to exist.
 
 ## Code structure
 
