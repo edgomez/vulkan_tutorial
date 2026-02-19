@@ -21,6 +21,11 @@ For this **nothrow** version, the code:
 - checks `vk::Result` explicitly
 - uses explicit storage via `ExplicitBuffer<T>` for enumeration data
 
+The CMake target also disables compiler exceptions explicitly:
+
+- Clang/GCC: `-fno-exceptions`
+- MSVC: `/EHs-c-` and `_HAS_EXCEPTIONS=0`
+
 ## Key Differences from Tutorial 01
 
 | Aspect | Tutorial 01 | Tutorial 01 (nothrow) |

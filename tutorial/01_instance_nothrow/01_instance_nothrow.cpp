@@ -48,7 +48,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <iterator>
-#include <string>
 
 namespace
 {
@@ -111,7 +110,7 @@ struct VulkanApplicationOptions
 class VulkanApplication
 {
   public:
-    VulkanApplication(const std::string& app_name, const std::string& window_title)
+    VulkanApplication(const char* app_name, const char* window_title)
         : m_app_name(app_name), m_window_title(window_title)
     {
     }
@@ -239,7 +238,7 @@ class VulkanApplication
         m_library = unique_sdl_library{reinterpret_cast<SDL_LibraryTag*>(1)};
 
         m_window = unique_sdl_window{
-            SDL_CreateWindow(m_window_title.c_str(), options.window_width, options.window_height, SDL_WINDOW_VULKAN)};
+            SDL_CreateWindow(m_window_title, options.window_width, options.window_height, SDL_WINDOW_VULKAN)};
         if (!m_window)
         {
             std::printf("error: failed creating a SDL window\n");
@@ -348,7 +347,7 @@ class VulkanApplication
 
     bool createVulkanInstance(const VulkanApplicationOptions& options)
     {
-        vk::ApplicationInfo app_info(m_app_name.c_str(), 0, nullptr, 0, VK_API_VERSION_1_0);
+        vk::ApplicationInfo app_info(m_app_name, 0, nullptr, 0, VK_API_VERSION_1_0);
 
         // Enumerate available layers
         if (!enumerateWithStorage<vk::LayerProperties>(m_layer_properties,
@@ -623,10 +622,10 @@ class VulkanApplication
 
   private:
     /** Application name */
-    const std::string m_app_name;
+    const char* m_app_name;
 
     /** Window title */
-    const std::string m_window_title;
+    const char* m_window_title;
 
     /** RAII handling proper closing of the SDL library */
     unique_sdl_library m_library{nullptr};

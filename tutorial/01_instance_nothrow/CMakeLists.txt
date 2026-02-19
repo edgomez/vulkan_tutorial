@@ -21,6 +21,24 @@ target_compile_features(VulkanTutorial01NoThrow
         cxx_std_11
 )
 
+if (MSVC)
+    target_compile_options(VulkanTutorial01NoThrow
+        PRIVATE
+            "/EHs-c-"
+    )
+    target_compile_definitions(VulkanTutorial01NoThrow
+        PRIVATE
+            "_HAS_EXCEPTIONS=0"
+    )
+elseif (CMAKE_CXX_COMPILER_ID MATCHES ".*LLVM.*"
+    OR CMAKE_CXX_COMPILER_ID MATCHES ".*Clang.*"
+    OR CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    target_compile_options(VulkanTutorial01NoThrow
+        PRIVATE
+            "-fno-exceptions"
+    )
+endif()
+
 set_target_properties(VulkanTutorial01NoThrow
     PROPERTIES
         OUTPUT_NAME vulkan-tutorial-01-instance-nothrow
