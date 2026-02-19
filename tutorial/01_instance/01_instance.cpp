@@ -23,7 +23,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <exception>
+#include <iterator>
+#include <stdexcept>
 #include <string>
 
 namespace
