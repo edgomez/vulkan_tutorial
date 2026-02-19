@@ -13,6 +13,8 @@ RUN apt-get update && \
         libvulkan-dev vulkan-validationlayers \
         # ── SDL3 dev ─────────────────────────────────────────────────
         libsdl3-dev \
+        # ── For tests ────────────────────────────────────────────────
+        libgtest-dev \
         # ── SDL3 build-time dependencies (X11, Wayland, input, …) ───
         libasound2-dev libpipewire-0.3-dev libx11-dev libxext-dev \
         libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libxtst-dev \
