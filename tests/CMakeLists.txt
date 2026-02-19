@@ -6,6 +6,7 @@ include(GoogleTest)
 
 add_executable(VulkanTutorialTests
     main.cpp
+    test_explicit_buffer.cpp
     test_scope_guard.cpp
 )
 
